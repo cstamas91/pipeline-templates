@@ -3,7 +3,9 @@ parameters:
 
 steps:
 - template: setNugetPackageVersion.yml
+
 - task: PowerShell@2
+  condition: ne( variables['nugetPackageVersion'], '' )
   inputs:
     targetType: inline
     script: |
@@ -12,6 +14,7 @@ steps:
 
 - ${{ each package in parameters.packagesToPack }}:
   - task: PowerShell@2
+    condition: ne( variables['nugetPackageVersion'], '' )
     inputs:
       targetType: inline
       script: |
@@ -29,7 +32,7 @@ steps:
         }
         
 - task: DotNetCoreCLI@2
-  condition: ne( variables['coreCliPackages'], '' )
+  condition: and( ne( variables['coreCliPackages'], '' ), ne( variables['nugetPackageVersion'], '' ) )
   inputs:
     command: pack
     projects: '$(variables.coreCliPackages)'
@@ -37,19 +40,21 @@ steps:
     versionEnvVar: 'nugetPackageVersion'
 
 - task: VSBuild@1
-  condition: ne( variables['frameworkPackages'], '' )
+  condition: and( ne( variables['frameworkPackages'], '' ), ne( variables['nugetPackageVersion'], '' ) )
   inputs:
     solution: '$( variables.frameworkPackages )'
     configuration: 'Release'
     restoreNugetPackages: true
 
 - task: NuGetCommand@2
-  condition: ne( variables['frameworkPackages'], '' )
+  condition: and( ne( variables['frameworkPackages'], '' ), ne( variables['nugetPackageVersion'], '' ) )
   inputs:
     command: pack
     includeReferencedProjects: true
     packagesToPack: '$( variables.frameworkPackages )'
     packDestination: '$(Build.ArtifactStagingDirectory)'
+    versioningScheme: byEnvVar
+    versionEnvVar: 'nugetPackageVersion'
 
 - task: DotNetCoreCLI@2
   displayName: 'Push packages to libs feed'
