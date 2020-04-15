@@ -1,0 +1,60 @@
+parameters:
+  packagesToPack: []
+
+steps:
+- template: setNugetPackageVersion.yml
+- task: PowerShell@2
+  inputs:
+    targetType: inline
+    script: |
+      Write-Host '##vso[task.setvariable variable=coreCliPackages]';
+      Write-Host '##vso[task.setvariable variable=frameworkPackages]';
+
+- ${{ each package in parameters.packagesToPack }}:
+  - task: PowerShell@2
+    inputs:
+      targetType: inline
+      script: |
+        $frameworkPackages  = '$( variables.frameworkPackages )';
+        $coreCliPackages    = '$( variables.coreCliPackages )';
+        If ('${{ package.coreCli }}' -eq 'false') 
+        {
+          $frameworkPackages = [String]::Join(";", frameworkPackages, ${{ package.name }});
+          Write-Host '##vso[task.setvariable variable=coreCliPackages]$frameworkPackages';
+        } 
+        else 
+        {
+          $coreCliPackages = [String]::Join(";", $coreCliPackages, ${{ package.name }});
+          Write-Host '##vso[task.setvariable variable=coreCliPackages]$coreCliPackages';
+        }
+        
+- task: DotNetCoreCLI@2
+  condition: ne( variables['coreCliPackages'], '' )
+  inputs:
+    command: pack
+    projects: '$(variables.coreCliPackages)'
+    versioningScheme: byEnvVar
+    versionEnvVar: 'nugetPackageVersion'
+
+- task: VSBuild@1
+  condition: ne( variables['frameworkPackages'], '' )
+  inputs:
+    solution: '$( variables.frameworkPackages )'
+    configuration: 'Release'
+    restoreNugetPackages: true
+
+- task: NuGetCommand@2
+  condition: ne( variables['frameworkPackages'], '' )
+  inputs:
+    command: pack
+    includeReferencedProjects: true
+    packagesToPack: '$( variables.frameworkPackages )'
+    packDestination: '$(Build.ArtifactStagingDirectory)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Push packages to libs feed'
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+    nuGetFeedType: 'internal'
+    publishVstsFeed: '6c464a6a-95af-4d6c-b50e-c2008380278b'
