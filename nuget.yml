@@ -9,8 +9,8 @@ steps:
   inputs:
     targetType: inline
     script: |
-      Write-Host '##vso[task.setvariable variable=coreCliPackages]';
-      Write-Host '##vso[task.setvariable variable=frameworkPackages]';
+      Write-Host "##vso[task.setvariable variable=coreCliPackages]";
+      Write-Host "##vso[task.setvariable variable=frameworkPackages]";
 
 - ${{ each package in parameters.packagesToPack }}:
   - task: PowerShell@2
@@ -23,12 +23,12 @@ steps:
         If ('${{ package.coreCli }}' -eq 'false') 
         {
           $frameworkPackages = [String]::Join(";", $frameworkPackages, '${{ package.name }}');
-          Write-Host '##vso[task.setvariable variable=coreCliPackages]$frameworkPackages';
+          Write-Host "##vso[task.setvariable variable=coreCliPackages]$frameworkPackages";
         } 
         else 
         {
           $coreCliPackages = [String]::Join(";", $coreCliPackages, '${{ package.name }}');
-          Write-Host '##vso[task.setvariable variable=coreCliPackages]$coreCliPackages';
+          Write-Host "##vso[task.setvariable variable=coreCliPackages]$coreCliPackages";
         }
         
 - task: DotNetCoreCLI@2

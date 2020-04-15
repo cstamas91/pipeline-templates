@@ -1,5 +1,5 @@
 steps:
-- pwsh: Write-Host '##vso[task.setvariable variable=nugetPackageVersion]';
+- pwsh: Write-Host "##vso[task.setvariable variable=nugetPackageVersion]";
 
 - pwsh: |
     $sourceBranch = '$(Build.SourceBranch)';
@@ -7,5 +7,5 @@ steps:
     {
       $sourceBranch = $sourceBranch -replace 'refs/tags/','';
       Write-Host $sourceBranch;
-      Write-Host '##vso[task.setvariable variable=nugetPackageVersion]$sourceBranch';
+      Write-Host "##vso[task.setvariable variable=nugetPackageVersion]$sourceBranch";
     }
