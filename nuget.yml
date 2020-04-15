@@ -22,12 +22,12 @@ steps:
         $coreCliPackages    = '$( variables.coreCliPackages )';
         If ('${{ package.coreCli }}' -eq 'false') 
         {
-          $frameworkPackages = [String]::Join(";", frameworkPackages, ${{ package.name }});
+          $frameworkPackages = [String]::Join(";", $frameworkPackages, '${{ package.name }}');
           Write-Host '##vso[task.setvariable variable=coreCliPackages]$frameworkPackages';
         } 
         else 
         {
-          $coreCliPackages = [String]::Join(";", $coreCliPackages, ${{ package.name }});
+          $coreCliPackages = [String]::Join(";", $coreCliPackages, '${{ package.name }}');
           Write-Host '##vso[task.setvariable variable=coreCliPackages]$coreCliPackages';
         }
         
