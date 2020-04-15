@@ -6,5 +6,6 @@ steps:
     If ($sourceBranch -like 'refs/tags/*') 
     {
       $sourceBranch = $sourceBranch -replace 'refs/tags/','';
+      Write-Host $sourceBranch;
       Write-Host '##vso[task.setvariable variable=nugetPackageVersion]$sourceBranch';
     }
